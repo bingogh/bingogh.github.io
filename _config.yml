@@ -1,0 +1,24 @@
+# auto: true
+
+markdown: kramdown
+highlighter: rouge
+paginate: 8
+permalink: /:title
+encoding: UTF-8
+gems: [jekyll-paginate]
+
+title: Bingo's Blog
+url: http://bingo.github.io
+feed: /atom.xml
+author_info: <a href="http://bingo.github.io/">Bingo</a>
+
+myblog:
+  gavatar: images/2.jpg
+  gpname: Bingo
+  linkedin: http://bingo.github.io/
+  github: https://github.com/bingogh
+  email: mailto:bingobox@qq.com
+  coverimgs: []
+  postbgimg: []
+
+categories: [python, books]
