@@ -26,7 +26,7 @@
    <title>Bingo's Blog</title>
    <link href="http://bingo.github.io/atom.xml" rel="self" type="application/atom+xml"/>
    <link href="http://bingo.github.io" rel="alternate" type="text/html" />
-   <updated>2016-05-31T21:08:15+08:00</updated>
+   <updated>2016-05-31T22:42:22+08:00</updated>
    <id>http://bingo.github.io</id>
    <author>
      <name></name>
@@ -35,16 +35,11 @@
 
    
    <entry>
-     <title>Macdown</title>
+     <title>Markdown 编辑器 MacDown 介绍</title>
      <link href="/MacDown"/>
      <updated>2016-04-01T00:00:00+08:00</updated>
      <id>/MacDown</id>
-     <content type="html">&lt;h1 id=&quot;section&quot;&gt;开篇&lt;/h1&gt;
-&lt;p&gt;介绍一下我用的 Markdown 编辑器吧。&lt;/p&gt;
-
-&lt;p&gt;MacDown，水一篇。&lt;/p&gt;
-
-&lt;h1 id=&quot;macdown&quot;&gt;MacDown&lt;/h1&gt;
+     <content type="html">&lt;h1 id=&quot;macdown&quot;&gt;MacDown&lt;/h1&gt;
 
 &lt;p&gt;&lt;img src=&quot;http://macdown.uranusjr.com/static/base/img/logo-160.png&quot; alt=&quot;MacDown logo&quot; /&gt;&lt;/p&gt;
 
@@ -467,5 +462,6 @@ date: 2014-06-06 20:00:00
 </feed>
 
 
+  <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1259380195'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s11.cnzz.com/z_stat.php%3Fid%3D1259380195%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));</script>
 </body>
 </html>
