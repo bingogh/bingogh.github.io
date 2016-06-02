@@ -8,17 +8,17 @@ encoding: UTF-8
 gems: [jekyll-paginate]
 
 title: Bingo's Blog
-url: http://bingo.github.io
+url: http://bingogh.github.io
 feed: /atom.xml
-author_info: <a href="http://bingo.github.io/">Bingo</a>
+author_info: <a href="http://bingogh.github.io/">Bingo</a>
 
 myblog:
   gavatar: images/2.jpg
   gpname: Bingo
-  linkedin: http://bingo.github.io/
+  linkedin: https://github.com/bingogh
   github: https://github.com/bingogh
   email: mailto:bingobox@qq.com
   coverimgs: []
   postbgimg: []
 
-categories: [python, books]
+categories: [tech, skills]
