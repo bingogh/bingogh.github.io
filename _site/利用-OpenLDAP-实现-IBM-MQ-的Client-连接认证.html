@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>利用 OpenLDAP 实现 MQ Client 的连接认证 | Bingo's Blog</title>
+  <meta name="renderer" content="webkit">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="/css/font-awesome/css/font-awesome.min.css" type="text/css" />
+  <link rel="stylesheet" href="/css/default.css" type="text/css" />
+  <link rel="stylesheet" href="/css/desktop.css" type="text/css" />
+  <link rel="stylesheet" href="/css/mobile.css" type="text/css" />
+  <link rel="shortcut icon" href="/css/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="/css/favicon.ico" mce_href="/favicon.ico" type="image/x-icon">
+  <link rel="alternate" type="application/atom+xml" title="Recent Entries" href="/atom.xml" />
+  <script src="/js/jquery-1.11.0.min.js" type="text/javascript"></script>
+  <script src="/js/jquery-migrate-1.2.1.js" type="text/javascript"></script>
+  <script src="/js/jquery.transit.min.js" type="text/javascript"></script>
+  <script src="/js/common.js" type="text/javascript"></script>
+
+<body>
+  <link rel="stylesheet" href="/js/prettify/prettify.css" />
+<style type="text/css">
+  html {
+    background: #333333;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+  }
+  @media screen and (max-width: 750px){
+    body { background: rgba(255, 255, 255, 0.9); }
+  }
+</style>
+
+<div id="content" class="post" style="margin-top: 20px;">
+  <div id="avatar" class="avatar circle" data-in-right="false" style="width: 150px; height: 150px; position: fixed; top: 40px; z-index: 99; opacity: 0;">
+    <div class="center" style="margin-top: 4px; height: 142px; width: 142px; border-radius: 71px; background-image: url('../images/2.jpg');"></div>
+  </div>
+
+  <div class="entry" style="position: relative;">
+    <h1 class="entry-title"><a href="/%E5%88%A9%E7%94%A8-OpenLDAP-%E5%AE%9E%E7%8E%B0-IBM-MQ-%E7%9A%84Client-%E8%BF%9E%E6%8E%A5%E8%AE%A4%E8%AF%81" title="利用 OpenLDAP 实现 MQ Client 的连接认证">利用 OpenLDAP 实现 MQ Client 的连接认证</a></h1>
+
+    <p class="entry-date">2016-07-22 
+        <span class="lastModified" style="display: none;" data-source="_posts/Skills/2016-07-22-利用 OpenLDAP 实现 IBM MQ 的Client 连接认证.md">最后更新时间: 
+        </span>
+    </p>
+
+
+    <h2 id="section">1. 实验环境</h2>
+<p><a href="http://www.ubuntu.org.cn/download/desktop">Ubuntu 16.4 LTS - 64 bit</a><br />
+<a href="http://www.openldap.org/software/download/">OpenLDAP - 2.4.44</a></p>
+
+<hr />
+
+<p>WebSphere MQ Advanced for Developers (Free ^_^)<br />
+<a href="https://www.ibm.com/developerworks/community/blogs/messaging/entry/develop_on_websphere_mq_advanced_at_no_charge?lang=en">mqadv_dev80_linux_x86-64.tar.gz</a><br />
+<a href="http://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.ins.doc/q008640_.htm">Installing IBM MQ server on Linux</a><br />
+<a href="http://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.ins.doc/q009440_.htm">Uninstalling IBM MQ on Linux</a></p>
+
+<hr />
+
+<h2 id="openldap">2. OpenLDAP</h2>
+
+<h3 id="section-1">2.1 安装</h3>
+<p>Dependence：libdb ( apt-get install libdb5.3-dev )<br />
+Install: configure -&gt; make depend -&gt; make install</p>
+
+<h3 id="section-2">2.2 配置</h3>
+
+<h4 id="sldapconf">2.2.1 sldap.conf</h4>
+<p>OpenLDAP 配置文件在 /usr/local/etc/openldap 目录下，slapd.conf 是slapd 服务配置文件。</p>
+
+<p>slapd.conf 文件：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>#
+# See slapd.conf (5) for details on configuration options.
+#
+include         /usr/local/etc/openldap/schema/core.schema
+include         /usr/local/etc/openldap/schema/cosine.schema
+include         /usr/local/etc/openldap/schema/inetorgperson.schema
+include         /usr/local/etc/openldap/schema/nis.schema
+
+loglevel        296
+pidfile         /usr/local/var/run/slapd.pid
+argsfile        /usr/local/var/run/slapd.args
+
+# The next three lines allow use of TLS for encrypting connections.
+# TLSCipherSuite  HIGH:MEDIUM:+SSLv2
+# TLSCACertificateFile    /usr/local/etc/openldap/cacerts/cacert.pem
+# TLSCertificateFile      /usr/local/etc/openldap/slapdcert.pem
+# TLSCertificateKeyFile   /usr/local/etc/openldap/slapdkey.pem
+
+# access control policy:
+# Restrict password access to change by owner and authentication.
+# Allow read access by everyone to all other attributes.
+
+access to attrs=shadowLastChange,userPassword
+   by self write
+   by * auth
+
+access to *
+   by * read
+
+#######################################################################
+# database definition
+#######################################################################
+
+database        bdb
+suffix          "dc=bingo,dc=com"
+
+rootdn          "cn=Manager,dc=bingo,dc=com"
+rootpw          secret
+
+directory       /usr/local/var/openldap-data
+
+# Indices to maintain for this database
+index objectClass                       eq,pres
+index ou,cn,mail,surname,givenname      eq,pres,sub
+index uidNumber,gidNumber,loginShell    eq,pres
+index uid,memberUid                     eq,pres,sub
+index nisMapName,nisMapEntry            eq,pres,sub
+</code></pre>
+</div>
+
+<h4 id="log-">2.2.2 log 配置</h4>
+<p>loglevel 行设置的是日志选项。<br />
+在系统日志配置中加入 ldap 日志路径<br />
+&gt;vi /etc/rsyslog.conf</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>local4.*	/var/log/ldap.log
+</code></pre>
+</div>
+
+<p>重启日志服务<br />
+&gt;service rsyslog restart</p>
+
+<h4 id="ldap-">2.2.3 启动 ldap 服务</h4>
+<p>启动 ldap 服务并查看<br />
+&gt;/usr/local/libexec/slapd -f slapd.conf<br />
+&gt;ps -ef | grep slapd</p>
+
+<h4 id="inetorgperson-">2.2.4 添加 inetOrgPerson 信息</h4>
+
+<p>addmqm.ldif 文件</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code># written by bingo
+# date 2016.7.23
+# usage: ldapadd -x -D 'cn=Manager,dc=bingo,dc=com' -w secret -f mqm.ldif
+dn: dc=bingo,dc=com
+objectClass: dcObject
+objectClass: organization
+o: bingo
+dc: bingo
+description: this is my domain
+
+dn: uid=mqm,dc=bingo,dc=com
+objectClass: Person
+objectClass: inetOrgPerson
+uid: mqm
+sn: bingo
+cn: yuan
+userPassword: teamsun
+telephoneNumber: 10010
+mail: bingobox@qq.com
+
+dn: uid=root,dc=bingo,dc=com
+objectClass: Person
+objectClass: inetOrgPerson
+uid: root
+sn: root
+cn: root
+userPassword: teamsun
+telephoneNumber: 10086
+mail: root@qq.com  
+</code></pre>
+</div>
+
+<h2 id="ibm-mq">3. IBM MQ</h2>
+
+<h3 id="qm-">3.1 QM 配置</h3>
+<p>Client 是通过 server-connection 来连接到 QM 的，需要定义的参数如下：</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>***Create QM1***  
+crtmqm -p 1414 QM1   
+strmqm QM1 
+
+***runmqsc QM1***  
+DEFINE CHANNEL(CLIENT.CHL) CHLTYPE(SVRCONN) REPLACE  
+DEFINE AUTHINFO(LDAP) AUTHTYPE(IDPWLDAP) CONNAME('127.0.0.1(389)') BASEDNU('dc=ibm,dc=com') SHORTUSR('uid') REPLACE  
+ALTER QMGR CONNAUTH(LDAP)  
+ALTER QMGR CHLAUTH(DISABLED)  
+REFRESH SECURITY  
+</code></pre>
+</div>
+
+<h3 id="client-">3.2 Client 连接测试</h3>
+<p>使用 amqscnxc 来连接 QM</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>amqscnxc -x '127.0.0.1' -c 'CLIENT.CHL' -u mqm
+</code></pre>
+</div>
+
+<h3 id="section-3">参考</h3>
+<ol>
+  <li><a href="http://www.ibm.com/developerworks/cn/linux/l-openldap/">使用 OpenLDAP 集中管理用户帐号</a></li>
+</ol>
+
+
+
+  </div>
+
+  <div id="menuIndex" class="sidenav">
+    <div class="myinfo"><center>
+      <div id="avatarHolder" class="avatar circle" style="width: 0px; height: 0px; box-shadow: none; margin-bottom: 20px;"></div>
+      <a href="/index.html" title="Homepage"><i class="icon-home icon-large"></i> Home</a>
+      <a href="https://github.com/bingogh"><i class="icon-linkedin-sign icon-large"></i> Profile</a>
+      <a href="https://github.com/bingogh"><i class="icon-github icon-large"></i> Code</a>
+      <a href="mailto:bingobox@qq.com"><i class="icon-envelope icon-large"></i> Mail</a>
+    </center></div>
+    <div id="menu"></div>
+  </div>
+  
+    <div id="disqus_thread"></div>
+<script>
+/**
+* RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+* LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
+*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL; // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+
+s.src = '//bingogo.disqus.com/embed.js';
+
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+</div>
+
+<script src="/js/post.js" type="text/javascript"></script>
+
+  <script type="text/javascript">var cnzz_protocol = (("https:" == document.location.protocol) ? " https://" : " http://");document.write(unescape("%3Cspan id='cnzz_stat_icon_1259380195'%3E%3C/span%3E%3Cscript src='" + cnzz_protocol + "s11.cnzz.com/z_stat.php%3Fid%3D1259380195%26show%3Dpic1' type='text/javascript'%3E%3C/script%3E"));</script>
+</body>
+</html>
