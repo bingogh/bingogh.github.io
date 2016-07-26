@@ -33,6 +33,7 @@ OpenLDAP 配置文件在 /usr/local/etc/openldap 目录下，slapd.conf 是slapd
   
 slapd.conf 文件：  
 	
+	# Modified by bingo	# date 2016.7.23
 	#
 	# See slapd.conf (5) for details on configuration options.
 	#
@@ -41,7 +42,7 @@ slapd.conf 文件：
 	include         /usr/local/etc/openldap/schema/inetorgperson.schema
 	include         /usr/local/etc/openldap/schema/nis.schema
 
-	loglevel        296
+	loglevel        256
 	pidfile         /usr/local/var/run/slapd.pid
 	argsfile        /usr/local/var/run/slapd.args
 
@@ -125,6 +126,6 @@ Client 是通过 server-connection 来连接到 QM 的，需要定义的参数�
 	
 	amqscnxc -x '127.0.0.1' -c 'CLIENT.CHL' -u mqm
 
-
+![amqscnxc result](/images/OpenLDAP-1.jpg)  
 ### 参考  
 1. [使用 OpenLDAP 集中管理用户帐号](http://www.ibm.com/developerworks/cn/linux/l-openldap/)  
